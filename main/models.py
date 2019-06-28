@@ -8,7 +8,7 @@ class option(models.Model):
         return self.name
     
 
-class speification(models.Model):
+class specification(models.Model):
     name=models.CharField('name',max_length=30)
     def __str__(self):
         return self.name
@@ -25,7 +25,7 @@ class SKU(models.Model):
     SKU_id=models.UUIDField('SKU_id',primary_key=True, default=uuid.uuid4, editable=False)
     price=models.IntegerField('price')
     amount=models.IntegerField('amount')
-    spec=models.ManyToManyField(option)
+    options=models.ManyToManyField(option)
     def __str__(self):
         return str(self.spec.all()[0].name)
 
@@ -36,6 +36,7 @@ class SPU(models.Model):
     SKUs=models.ManyToManyField(SKU)
     imgs=models.ManyToManyField(img)
     catagorys=models.ManyToManyField(catagory)
+    spec=models.ManyToManyField(specification)
     def __str__(self):
         return self.name
 
@@ -49,6 +50,7 @@ class store(models.Model):
 
 class order(models.Model):
     order_id=models.UUIDField('order_id',primary_key=True, default=uuid.uuid4, editable=False)
+    price=models.IntegerField('price')
     create_time=models.TimeField('create_time')
     payment_time=models.TimeField('payment_time')
     confirm_time=models.TimeField('confirm_time')
@@ -61,5 +63,7 @@ class customer(models.Model):
     nickname=models.CharField('nickname',max_length=50)
     address=models.CharField('address',max_length=100)
     phone_number=models.CharField('phone_number',max_length=20)
+    cart=models.ManyToManyField(SKU)
+    orders=models.ManyToManyField(order)
     def __str__(self):
         return str(self.uuid)+'#'+self.nickname

@@ -3,7 +3,7 @@ from main.models import *
 # Register your models here.  
 admin.site.register(option)
     
-admin.site.register(speification)
+admin.site.register(specification)
 
 admin.site.register(catagory)
 
