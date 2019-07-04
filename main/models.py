@@ -48,14 +48,13 @@ class SKU(models.Model):
         return str(s)
 
 class img(models.Model):
-    URL=models.URLField('URL')
+    URL=models.CharField('URL',max_length=200)
     belong=models.ForeignKey(SKU,on_delete=models.CASCADE)
 
 
 class customer(models.Model):
     uuid=models.UUIDField('customer_id',primary_key=True, default=uuid.uuid4, editable=False)
-    password=models.CharField('password',max_length=256)
-    nickname=models.CharField('nickname',max_length=50)
+    openid=models.CharField('openid',max_length=100)
     address=models.CharField('address',max_length=100)
     phone_number=models.CharField('phone_number',max_length=20)
     def __str__(self):

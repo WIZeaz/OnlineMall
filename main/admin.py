@@ -32,7 +32,7 @@ class order_display(admin.ModelAdmin):
 admin.site.register(order,order_display)
 
 class customer_display(admin.ModelAdmin):
-    list_display=('uuid','nickname','address','phone_number')
+    list_display=('uuid','openid')
 
 admin.site.register(customer,customer_display)
 
