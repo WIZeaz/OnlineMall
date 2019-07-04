@@ -35,3 +35,5 @@ class customer_display(admin.ModelAdmin):
     list_display=('uuid','nickname','address','phone_number')
 
 admin.site.register(customer,customer_display)
+
+admin.site.register(item)
