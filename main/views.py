@@ -6,32 +6,21 @@ import main.models as models
 from django.db.models import ObjectDoesNotExist
 # Create your views here.
 
-def login(request):
-    if (request.method=='POST'):
-        d=json.loads(request.body)
-        code=d.get('code',None)
-        if (code!=None):
-            response=rq.get("https://api.weixin.qq.com/sns/jscode2session",params={'appid':'wx3776f53af9d3fba1','secret':'4c5a7e33f599f841fd2e685d448e2e68','js_code':code,'grant_type':'authorization_code'})
-            response.encoding='UTF-8'
-            info=response.json()
-            id=info.get('id',None)
-            if (id!=None):
-                (user,exist)=models.customer.objects.get_or_create(openid=id)
-                return HttpResponse(json.dumps({'token':user.uuid,'openid':info.get('openid','null')}))
-    return HttpResponse("Error")
-
 def catagorieslist(request):
     l=[]
     for i in models.catagory.objects.all():
         l.append({'id':i.id,'name':i.name,'description':'','img':{'url':''}})
     return HttpResponse(json.dumps(l,ensure_ascii=False))
 
-def getCatagory(request,cname):
+def getCatagory(request):
     l=[]
+    cname=request.GET.get('id',None)
+    if cname==None:
+        return HttpResponse("error")
     try:
-        catagory=models.catagory.objects.get(name=cname)
+        catagory=models.catagory.objects.get(id=cname)
         for i in catagory.spu_set.all():
-            l.append({'name':i.name,'store':i.belong.name})
+            l.append({'name':i.name,'store':i.belong.name,'id':str(i.SPU_id)})
     except ObjectDoesNotExist:
         l['error']='Catagory does not exist'
     return HttpResponse(json.dumps(l,ensure_ascii=False))
@@ -40,11 +29,15 @@ def SPUlist(request):
     l=[]
     for i in models.SPU.objects.all():
         minprice=999999999
+        URL=''
+        try:
+            URL=i.sku_set.all()[0].img_set.all()[0]
+            URL='/static/images/'+ URL
+        except:
+            pass
         for j in i.sku_set.all():
             minprice=min(minprice,j.price)
-            for k in j.img_set.all():
-                URL= k.URL
-        l.append({'id':str(i.SPU_id),'name':i.name,'price':'','stock':'','main_img_url':'/static/images/'+URL})
+        l.append({'id':str(i.SPU_id),'name':i.name,'price':'','stock':'','main_img_url':URL})
     return HttpResponse(json.dumps(l,ensure_ascii=False))
 
 def getSPU(request,uuid):
@@ -58,6 +51,13 @@ def getSPU(request,uuid):
         l['store']=spu.belong.name
         l['main_img_url'] = ''
         l['SKU']=[]
+        l['specification']=[]
+        for i in spu.spec.all():
+            tmp={'name':i.name}
+            tmp['options']=[]
+            for j in i.option_set.all():
+                tmp['options'].append(j.name)
+            l['specification'].append(tmp)
         minprice=999999999999
         for i in spu.sku_set.all():
             singleSKU={'SKU_id':str(i.SKU_id),'price':i.price,'stock':i.amount}
@@ -91,3 +91,4 @@ def getStore(request,id):
     except:
         l['error']='Store does not exist'
     return HttpResponse(json.dumps(l,ensure_ascii=False))
+
