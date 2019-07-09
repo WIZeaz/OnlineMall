@@ -23,7 +23,7 @@ def login(request):
 def catagorieslist(request):
     l=[]
     for i in models.catagory.objects.all():
-        l.append(i.name)
+        l.append({'id':i.id,'name':i.name,'description':'','img':{'url':''}})
     return HttpResponse(json.dumps(l,ensure_ascii=False))
 
 def getCatagory(request,cname):
@@ -39,25 +39,35 @@ def getCatagory(request,cname):
 def SPUlist(request):
     l=[]
     for i in models.SPU.objects.all():
-        l.append({'uuid':str(i.SPU_id),'name':i.name})
+        minprice=999999999
+        for j in i.sku_set.all():
+            minprice=min(minprice,j.price)
+            for k in j.img_set.all():
+                URL= k.URL
+        l.append({'id':str(i.SPU_id),'name':i.name,'price':'','stock':'','main_img_url':'/static/images/'+URL})
     return HttpResponse(json.dumps(l,ensure_ascii=False))
 
 def getSPU(request,uuid):
     l=dict()
     try:
         spu=models.SPU.objects.get(SPU_id=uuid)
-        l['SPU_id']=str(spu.SPU_id)
+        l['id']=str(spu.SPU_id)
         l['name']=spu.name
-        l['description']=spu.description
+        l['properties']=spu.description
+        l['summary']=spu.description
         l['store']=spu.belong.name
+        l['main_img_url'] = ''
         l['SKU']=[]
+        minprice=999999999999
         for i in spu.sku_set.all():
-            singleSKU={'SKU_id':str(i.SKU_id),'price':i.price,'amount':i.amount}
+            singleSKU={'SKU_id':str(i.SKU_id),'price':i.price,'stock':i.amount}
             optdict={}
+            minprice=min(minprice,i.price)
             for j in i.options.all():
                 optdict[j.belong.name]=j.name
             singleSKU['option']=optdict
             l['SKU'].append(singleSKU)
+        l['price']=minprice
     except:
         l['error']='SPU does not exist'
     return HttpResponse(json.dumps(l,ensure_ascii=False))

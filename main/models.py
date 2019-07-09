@@ -2,6 +2,7 @@ from django.db import models
 import uuid
 # Create your models here.
 
+#TODO: specification may need to use one to many relationship, to prevent accident revise
 class specification(models.Model):
     name=models.CharField('name',max_length=30)
     def __str__(self):
