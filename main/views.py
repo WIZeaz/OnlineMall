@@ -72,25 +72,20 @@ def getSPU(request,uuid):
             pass
         l['main_img_url'] = URL
         l['SKU']=[]
-        l['specification']=[]
+        l['specification']={}
         for i in spu.spec.all():
-            tmp={'name':i.name}
-            tmp['options']=[]
-            l['specification'].append(tmp)
+            l['specification'][i.name]=[]
         minprice=999999999999
         for i in spu.sku_set.all():
             singleSKU={'SKU_id':str(i.SKU_id),'price':i.price,'stock':i.amount}
             minprice=min(minprice,i.price)
 
-            m=0
+            optdict={}
             for j in i.options.all():
                 optdict[j.belong.name]=j.name
                 # 根据SPU拥有的SKU来返回这个SPU可能有的option
-                if j.name not in l['specification'][m]['options']:
-                    l['specification'][m]['options'].append(j.name)
-                
-                m+=1
-
+                if j.name not in l['specification'][j.belong.name]:
+                    l['specification'][j.belong.name].append(j.name)
             singleSKU['option']=optdict
 
             SKUimg=[]
@@ -133,25 +128,3 @@ def getBanner(request,id):
 
 def getTheme(request):
     return HttpResponse("{}")
-
-def address(request):
-    if(request.method == "GET"):
-        try:
-            uuid = request.META.get("HTTP_TOKEN")
-            address=json.loads(models.customer.objects.get(uuid=uuid).address)
-        except:
-            address={'msg':'Address does not exist'}
-        return HttpResponse(json.dumps(address,ensure_ascii=False))
-
-    elif(request.method == "POST"):
-        try:
-            concat = request.POST
-            postBody = str(request.body, encoding = "utf-8") 
-            uuid = request.META.get("HTTP_TOKEN")
-            models.customer.objects.filter(uuid=uuid).update(address=postBody)
-            return HttpResponse('success submit')   
-            print(postBody)
-            msg='success'
-        except:
-            msg='failed'
-        return HttpResponse(msg)

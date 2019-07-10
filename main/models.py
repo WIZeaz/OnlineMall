@@ -57,8 +57,9 @@ class img(models.Model):
 
 class customer(models.Model):
     uuid=models.UUIDField('customer_id',primary_key=True, default=uuid.uuid4, editable=False)
+    nickname=models.CharField('nickname',max_length=20)
     openid=models.CharField('openid',max_length=100)
-    address=models.CharField('address',max_length=100)
+    address=models.TextField('address')
     phone_number=models.CharField('phone_number',max_length=20)
     def __str__(self):
         return str(self.uuid)+'#'+self.nickname
@@ -66,13 +67,21 @@ class customer(models.Model):
 class order(models.Model):
     order_id=models.UUIDField('order_id',primary_key=True, default=uuid.uuid4, editable=False)
     price=models.IntegerField('price')
-    create_time=models.TimeField('create_time')
-    payment_time=models.TimeField('payment_time')
-    confirm_time=models.TimeField('confirm_time')
+    create_time=models.DateTimeField('create_time')
+    payment_time=models.DateTimeField('payment_time')
+    confirm_time=models.DateTimeField('confirm_time')
+    status=models.IntegerField('status') #1:待付款 2:已付款 3:已发货 4:已收货
+    snap_address=models.TextField('snap_address')
     belong=models.ForeignKey(customer,on_delete=models.CASCADE)
     def __str__(self):
-        return self.order_id
+        return str(self.order_id)
 
+class order_item(models.Model):
+    toOrder=models.ForeignKey(order,related_name='items',on_delete=models.CASCADE)
+    toSKU=models.ForeignKey(SKU,on_delete=models.DO_NOTHING)
+    amount=models.IntegerField('amount')
+    def __str__(self):
+        return str(self.toSKU.belong.name)+'#'+str(self.amount)
 
 class item(models.Model):
     toSKU=models.ForeignKey(SKU,on_delete=models.CASCADE)

@@ -37,3 +37,5 @@ class customer_display(admin.ModelAdmin):
 admin.site.register(customer,customer_display)
 
 admin.site.register(item)
+
+admin.site.register(order_item)

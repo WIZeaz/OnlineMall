@@ -4,6 +4,7 @@ import main.models as models
 import requests as rq
 import json
 import main.config as Config
+from django.db.models import ObjectDoesNotExist
 # Create your views here.
 
 def login(request):
@@ -24,5 +25,61 @@ def login(request):
 def verify(request):
     return HttpResponse(json.dumps({'isValid':True},ensure_ascii=False))
 
-def getOrder(request):
-    request.POST.get('token',None)
+def orderList(request):
+    try: 
+        token=request.META.get("HTTP_TOKEN",None)
+        page=int(request.GET.get('page',1))
+        page-=1
+        if (token==None):
+            return HttpResponse("{'error':'Can not find token'}")
+        user=models.customer.objects.get(uuid=token)
+        l=dict(data=[])
+        for i in user.order_set.all()[page*Config.orderPerPage:(page+1)*Config.orderPerPage]:
+            tmp={'order_no':str(i.order_id),'id':str(i.order_id),'status':(i.status),'create_time':str(i.create_time),'payment_time':str(i.payment_time),'confirm_time':str(i.confirm_time),'total_price':i.price}
+            try:
+                tmp['snap_img']=Config.dname+i.items.all()[0].toSKU.img_set.all()[0].URL
+            except:
+                tmp['snap_img']=''
+            tmp['snap_name']=str(i.items.all()[0].toSKU)
+            tmp['total_count']=i.items.all()[0].amount
+            l['data'].append(tmp)
+        return HttpResponse(json.dumps(l,ensure_ascii=False))
+    except:
+        return HttpResponse("{'error':'something wrong happened'}")
+
+def getOrder(request,order_id):
+    try:
+        order=models.order.objects.get(order_id=order_id)
+        l=dict(status=order.status,total_price=order.price,create_time=str(order.create_time),order_no=order_id,snap_address=json.loads(order.snap_address),snap_items=[])
+        for i in order.items.all():
+            try:
+                url=Config.dname+i.toSKU.img_set.all()[0].URL
+            except:
+                url=''
+            l['snap_items'].append(dict(main_img_url=url,name=str(i.toSKU),price=i.toSKU.price,count=i.amount))
+        return HttpResponse(json.dumps(l,ensure_ascii=False))
+    except ObjectDoesNotExist:
+        return HttpResponse('{"error":"Order does not exist"}')
+    return HttpResponse('{"error":"unknown error"}')
+
+def address(request):
+    if(request.method == "GET"):
+        try:
+            uuid = request.META.get("HTTP_TOKEN")
+            address=models.customer.objects.get(uuid=uuid).address
+        except:
+            address={'msg':'Address does not exist'}
+        return HttpResponse(str(address))
+
+    elif(request.method == "POST"):
+        try:
+            concat = request.POST
+            postBody = str(request.body, encoding = "utf-8") 
+            uuid = request.META.get("HTTP_TOKEN")
+            models.customer.objects.filter(uuid=uuid).update(address=postBody)
+            return HttpResponse('success submit')   
+            print(postBody)
+            msg='success'
+        except:
+            msg='failed'
+        return HttpResponse(msg)
