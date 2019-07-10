@@ -27,4 +27,6 @@ urlpatterns = [
     path('product/<str:uuid>',main_views.getSPU),
     path('store/',main_views.storeList),
     path('store/<str:id>',main_views.getStore),
+    path('banner/<str:id>',main_views.getBanner),
+    path('theme',main_views.getTheme)
 ]

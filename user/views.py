@@ -3,6 +3,7 @@ from django.http import HttpResponse
 import main.models as models
 import requests as rq
 import json
+import main.config as Config
 # Create your views here.
 
 def login(request):
@@ -10,7 +11,7 @@ def login(request):
         d=json.loads(request.body)
         code=d.get('code',None)
         if (code!=None):
-            response=rq.get("https://api.weixin.qq.com/sns/jscode2session",params={'appid':'wx3776f53af9d3fba1','secret':'4c5a7e33f599f841fd2e685d448e2e68','js_code':code,'grant_type':'authorization_code'})
+            response=rq.get("https://api.weixin.qq.com/sns/jscode2session",params={'appid':Config.appId,'secret':Config.appSecret,'js_code':code,'grant_type':'authorization_code'})
             response.encoding='UTF-8'
             info=response.json()
             print(info)

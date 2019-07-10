@@ -51,6 +51,8 @@ class SKU(models.Model):
 class img(models.Model):
     URL=models.CharField('URL',max_length=200)
     belong=models.ForeignKey(SKU,on_delete=models.CASCADE)
+    def __str__(self):
+        return str(self.belong)+'['+self.URL+']'
 
 
 class customer(models.Model):

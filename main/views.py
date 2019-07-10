@@ -4,6 +4,7 @@ import requests as rq
 import json
 import main.models as models
 from django.db.models import ObjectDoesNotExist
+import main.config as Config
 # Create your views here.
 
 def catagorieslist(request):
@@ -27,15 +28,15 @@ def getCatagory(request):
 
 def SPUlist(request):
     l=[]
-    for i in models.SPU.objects.all():
+    for i in models.SPU.objects.all()[:10]:
         minprice=999999999
         URL=''
         try:
             for j in i.sku_set.all():
                 if j.img_set.count()>0:
-                    URL=j.img_set.all()[0]
+                    URL=j.img_set.all()[0].URL
                     break
-            URL='/static/images/'+ URL
+            URL=Config.dname+'/static/images/'+ URL
         except:
             pass
         for j in i.sku_set.all():
@@ -52,7 +53,16 @@ def getSPU(request,uuid):
         l['properties']=spu.description
         l['summary']=spu.description
         l['store']=spu.belong.name
-        l['main_img_url'] = ''
+        URL=''
+        try:
+            for j in spu.sku_set.all():
+                if j.img_set.count()>0:
+                    URL=j.img_set.all()[0].URL
+                    break
+            URL=Config.dname+'/static/images/'+ URL
+        except:
+            pass
+        l['main_img_url'] = URL
         l['SKU']=[]
         l['specification']=[]
         for i in spu.spec.all():
@@ -95,3 +105,11 @@ def getStore(request,id):
         l['error']='Store does not exist'
     return HttpResponse(json.dumps(l,ensure_ascii=False))
 
+def getBanner(request,id):
+    l={'description':'首页轮播图','id':id}
+    l['items']=[]
+    l['items'].append({'key_word':'22203ac2-9257-4725-9980-9c7179dcd426','type':1,'img':{'url':Config.dname+'/static/banner/huaweiP30.jpg'}})
+    return HttpResponse(json.dumps(l,ensure_ascii=False))
+
+def getTheme(request):
+    return HttpResponse("{}")
