@@ -114,7 +114,7 @@ def getBanner(request,id):
 def getTheme(request):
     return HttpResponse("{}")
 
-def getAddress(request):
+def address(request):
     if(request.method == "GET"):
         try:
             uuid = request.META.get("HTTP_TOKEN")
