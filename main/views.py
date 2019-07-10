@@ -21,7 +21,11 @@ def getCatagory(request):
     try:
         catagory=models.catagory.objects.get(id=cname)
         for i in catagory.spu_set.all():
-            l.append({'name':i.name,'store':i.belong.name,'id':str(i.SPU_id)})
+            tmp={'name':i.name,'store':i.belong.name,'id':str(i.SPU_id)}
+            for j in i.sku_set.all():
+                if j.img_set.count()>0:
+                    tmp['main_img_url']=Config.dname+j.img_set.all()[0].URL
+            l.append(tmp)
     except ObjectDoesNotExist:
         l['error']='Catagory does not exist'
     return HttpResponse(json.dumps(l,ensure_ascii=False))
@@ -36,7 +40,7 @@ def SPUlist(request):
                 if j.img_set.count()>0:
                     URL=j.img_set.all()[0].URL
                     break
-            URL=Config.dname+'/static/images/'+ URL
+            URL=Config.dname+ URL
         except:
             pass
         for j in i.sku_set.all():
@@ -56,6 +60,16 @@ def getSPU(request,uuid):
         l['properties']=spu.description
         l['summary']=spu.description
         l['store']=spu.belong.name
+
+        URL=''
+        try:
+            for j in spu.sku_set.all():
+                if j.img_set.count()>0:
+                    URL=j.img_set.all()[0].URL
+                    break
+            URL=Config.dname+URL
+        except:
+            pass
         l['main_img_url'] = URL
         l['SKU']=[]
         l['specification']=[]
@@ -66,8 +80,8 @@ def getSPU(request,uuid):
         minprice=999999999999
         for i in spu.sku_set.all():
             singleSKU={'SKU_id':str(i.SKU_id),'price':i.price,'stock':i.amount}
-            optdict={}
             minprice=min(minprice,i.price)
+
             m=0
             for j in i.options.all():
                 optdict[j.belong.name]=j.name
@@ -76,7 +90,14 @@ def getSPU(request,uuid):
                     l['specification'][m]['options'].append(j.name)
                 
                 m+=1
+
             singleSKU['option']=optdict
+
+            SKUimg=[]
+            for j in i.img_set.all():
+                SKUimg.append(Config.dname+j.URL)
+            singleSKU['img_url']=SKUimg
+
             l['SKU'].append(singleSKU)
         l['price']=minprice
        
