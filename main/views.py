@@ -113,3 +113,25 @@ def getBanner(request,id):
 
 def getTheme(request):
     return HttpResponse("{}")
+
+def getAddress(request):
+    if(request.method == "GET"):
+        try:
+            uuid = request.META.get("HTTP_TOKEN")
+            address=json.loads(models.customer.objects.get(uuid=uuid).address)
+        except:
+            address={'msg':'Address does not exist'}
+        return HttpResponse(json.dumps(address,ensure_ascii=False))
+
+    elif(request.method == "POST"):
+        try:
+            concat = request.POST
+            postBody = str(request.body, encoding = "utf-8") 
+            uuid = request.META.get("HTTP_TOKEN")
+            models.customer.objects.filter(uuid=uuid).update(address=postBody)
+            return HttpResponse('success submit')   
+            print(postBody)
+            msg='success'
+        except:
+            msg='failed'
+        return HttpResponse(msg)

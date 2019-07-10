@@ -28,5 +28,6 @@ urlpatterns = [
     path('store/',main_views.storeList),
     path('store/<str:id>',main_views.getStore),
     path('banner/<str:id>',main_views.getBanner),
-    path('theme',main_views.getTheme)
+    path('theme',main_views.getTheme),
+    path('address',main_views.address),
 ]
