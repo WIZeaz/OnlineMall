@@ -47,40 +47,39 @@ def SPUlist(request):
 def getSPU(request,uuid):
     l=dict()
     try:
+        
         spu=models.SPU.objects.get(SPU_id=uuid)
+        URL=spu.sku_set.all()[0].img_set.all()[0].URL
+        URL='http://127.0.0.1:8000/static/images/'+ URL
         l['id']=str(spu.SPU_id)
         l['name']=spu.name
         l['properties']=spu.description
         l['summary']=spu.description
         l['store']=spu.belong.name
-        URL=''
-        try:
-            for j in spu.sku_set.all():
-                if j.img_set.count()>0:
-                    URL=j.img_set.all()[0].URL
-                    break
-            URL=Config.dname+'/static/images/'+ URL
-        except:
-            pass
         l['main_img_url'] = URL
         l['SKU']=[]
         l['specification']=[]
         for i in spu.spec.all():
             tmp={'name':i.name}
             tmp['options']=[]
-            for j in i.option_set.all():
-                tmp['options'].append(j.name)
             l['specification'].append(tmp)
         minprice=999999999999
         for i in spu.sku_set.all():
             singleSKU={'SKU_id':str(i.SKU_id),'price':i.price,'stock':i.amount}
             optdict={}
             minprice=min(minprice,i.price)
+            m=0
             for j in i.options.all():
                 optdict[j.belong.name]=j.name
+                # 根据SPU拥有的SKU来返回这个SPU可能有的option
+                if j.name not in l['specification'][m]['options']:
+                    l['specification'][m]['options'].append(j.name)
+                
+                m+=1
             singleSKU['option']=optdict
             l['SKU'].append(singleSKU)
         l['price']=minprice
+       
     except:
         l['error']='SPU does not exist'
     return HttpResponse(json.dumps(l,ensure_ascii=False))
