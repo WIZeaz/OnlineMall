@@ -51,12 +51,16 @@ def SPUlist(request):
 def getSPU(request,uuid):
     l=dict()
     try:
+        
         spu=models.SPU.objects.get(SPU_id=uuid)
+        URL=spu.sku_set.all()[0].img_set.all()[0].URL
+        URL='http://127.0.0.1:8000/static/images/'+ URL
         l['id']=str(spu.SPU_id)
         l['name']=spu.name
         l['properties']=spu.description
         l['summary']=spu.description
         l['store']=spu.belong.name
+
         URL=''
         try:
             for j in spu.sku_set.all():
@@ -72,18 +76,21 @@ def getSPU(request,uuid):
         for i in spu.spec.all():
             tmp={'name':i.name}
             tmp['options']=[]
-            for j in i.option_set.all():
-                tmp['options'].append(j.name)
             l['specification'].append(tmp)
         minprice=999999999999
         for i in spu.sku_set.all():
             singleSKU={'SKU_id':str(i.SKU_id),'price':i.price,'stock':i.amount}
             minprice=min(minprice,i.price)
 
-            optdict={}
+            m=0
             for j in i.options.all():
                 optdict[j.belong.name]=j.name
-            
+                # 根据SPU拥有的SKU来返回这个SPU可能有的option
+                if j.name not in l['specification'][m]['options']:
+                    l['specification'][m]['options'].append(j.name)
+                
+                m+=1
+
             singleSKU['option']=optdict
 
             SKUimg=[]
@@ -93,6 +100,7 @@ def getSPU(request,uuid):
 
             l['SKU'].append(singleSKU)
         l['price']=minprice
+       
     except:
         l['error']='SPU does not exist'
     return HttpResponse(json.dumps(l,ensure_ascii=False))
@@ -125,3 +133,25 @@ def getBanner(request,id):
 
 def getTheme(request):
     return HttpResponse("{}")
+
+def address(request):
+    if(request.method == "GET"):
+        try:
+            uuid = request.META.get("HTTP_TOKEN")
+            address=json.loads(models.customer.objects.get(uuid=uuid).address)
+        except:
+            address={'msg':'Address does not exist'}
+        return HttpResponse(json.dumps(address,ensure_ascii=False))
+
+    elif(request.method == "POST"):
+        try:
+            concat = request.POST
+            postBody = str(request.body, encoding = "utf-8") 
+            uuid = request.META.get("HTTP_TOKEN")
+            models.customer.objects.filter(uuid=uuid).update(address=postBody)
+            return HttpResponse('success submit')   
+            print(postBody)
+            msg='success'
+        except:
+            msg='failed'
+        return HttpResponse(msg)
