@@ -31,13 +31,16 @@ def SPUlist(request):
         minprice=999999999
         URL=''
         try:
-            URL=i.sku_set.all()[0].img_set.all()[0]
+            for j in i.sku_set.all():
+                if j.img_set.count()>0:
+                    URL=j.img_set.all()[0]
+                    break
             URL='/static/images/'+ URL
         except:
             pass
         for j in i.sku_set.all():
             minprice=min(minprice,j.price)
-        l.append({'id':str(i.SPU_id),'name':i.name,'price':'','stock':'','main_img_url':URL})
+        l.append({'id':str(i.SPU_id),'name':i.name,'price':minprice,'stock':'','main_img_url':URL})
     return HttpResponse(json.dumps(l,ensure_ascii=False))
 
 def getSPU(request,uuid):
