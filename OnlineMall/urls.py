@@ -31,5 +31,6 @@ urlpatterns = [
     path('theme',main_views.getTheme),
     path('address',user_views.address),
     path('order/by_user',user_views.orderList),
-    path('order/<str:order_id>',user_views.getOrder)
+    path('order/<str:order_id>',user_views.getOrder),
+    path('order',user_views.order),
 ]

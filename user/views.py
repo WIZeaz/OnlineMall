@@ -3,8 +3,10 @@ from django.http import HttpResponse
 import main.models as models
 import requests as rq
 import json
-import main.config as Config
+import config as Config
+import time
 from django.db.models import ObjectDoesNotExist
+import util
 # Create your views here.
 
 def login(request):
@@ -23,16 +25,25 @@ def login(request):
     return HttpResponse("Error")
 
 def verify(request):
-    return HttpResponse(json.dumps({'isValid':True},ensure_ascii=False))
+    try:
+        token=request.META.get("HTTP_TOKEN",None)
+        user=models.customer.objects.get(uuid=token)
+        return HttpResponse(json.dumps({'isValid':True},ensure_ascii=False))
+    except:
+        return HttpResponse(json.dumps({'isValid':False},ensure_ascii=False))
+    
 
 def orderList(request):
     try: 
         token=request.META.get("HTTP_TOKEN",None)
+
         page=int(request.GET.get('page',1))
         page-=1
         if (token==None):
             return HttpResponse("{'error':'Can not find token'}")
         user=models.customer.objects.get(uuid=token)
+
+        print(page*Config.orderPerPage,(page+1)*Config.orderPerPage)
         l=dict(data=[])
         for i in user.order_set.all()[page*Config.orderPerPage:(page+1)*Config.orderPerPage]:
             tmp={'order_no':str(i.order_id),'id':str(i.order_id),'status':(i.status),'create_time':str(i.create_time),'payment_time':str(i.payment_time),'confirm_time':str(i.confirm_time),'total_price':i.price}
@@ -83,3 +94,27 @@ def address(request):
         except:
             msg='failed'
         return HttpResponse(msg)
+    
+def order(request):
+    if (request.method=='POST'):
+        info=json.loads(request.body,encoding='utf-8')
+        uuid = request.META.get("HTTP_TOKEN",None)
+        try:
+            user=models.customer.objects.get(uuid=uuid)
+        except:
+            return HttpResponse('{"error":"user does not exist"}')
+        newOrder=models.order()
+        newOrder.create_time=util.formatTime(time.localtime(time.time()))
+        newOrder.status=2
+        newOrder.belong=user
+        newOrder.snap_address=user.address
+        newOrder.price=0
+        newOrder.save()
+        totprice=0
+        for i in info['products']:
+            sku=models.SKU.objects.get(SKU_id=i['product_id'])
+            models.order_item.objects.create(toOrder=newOrder,toSKU=sku,amount=i['count'])
+            totprice+=sku.price
+        newOrder.price=totprice
+        newOrder.save()
+        return HttpResponse(json.dumps({'order_id':str(newOrder.order_id),'pass':True},ensure_ascii=False))

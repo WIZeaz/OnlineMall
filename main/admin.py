@@ -10,7 +10,14 @@ admin.site.register(catagory)
 admin.site.register(img)
 
 class SKU_display(admin.ModelAdmin):
-    list_display=('SKU_id','price','amount')
+    list_display=('SKU_id','name','price','amount')
+    readonly_fields=('name',)
+    def name(self,obj):
+        s=obj.belong.name
+        for i in obj.options.all():
+            s=s+'#'+i.name
+        return s
+    name.short_description='name'
 
 admin.site.register(SKU,SKU_display)
 

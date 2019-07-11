@@ -68,8 +68,8 @@ class order(models.Model):
     order_id=models.UUIDField('order_id',primary_key=True, default=uuid.uuid4, editable=False)
     price=models.IntegerField('price')
     create_time=models.DateTimeField('create_time')
-    payment_time=models.DateTimeField('payment_time')
-    confirm_time=models.DateTimeField('confirm_time')
+    payment_time=models.DateTimeField('payment_time',null=True)
+    confirm_time=models.DateTimeField('confirm_time',null=True)
     status=models.IntegerField('status') #1:待付款 2:已付款 3:已发货 4:已收货
     snap_address=models.TextField('snap_address')
     belong=models.ForeignKey(customer,on_delete=models.CASCADE)
