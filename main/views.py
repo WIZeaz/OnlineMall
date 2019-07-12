@@ -123,6 +123,7 @@ def getBanner(request,id):
     l={'description':'首页轮播图','id':id}
     l['items']=[]
     l['items'].append({'key_word':'22203ac2-9257-4725-9980-9c7179dcd426','type':1,'img':{'url':Config.dname+'/static/banner/huaweiP30.png'}})
+    
     return HttpResponse(json.dumps(l,ensure_ascii=False))
 
 def getTheme(request):

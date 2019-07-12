@@ -11,7 +11,7 @@ import util
 
 def login(request):
     if (request.method=='POST'):
-        d=json.loads(request.body)
+        d=json.loads(request.body.decode('utf-8'))
         code=d.get('code',None)
         if (code!=None):
             response=rq.get("https://api.weixin.qq.com/sns/jscode2session",params={'appid':Config.appId,'secret':Config.appSecret,'js_code':code,'grant_type':'authorization_code'})
@@ -85,7 +85,7 @@ def address(request):
     elif(request.method == "POST"):
         try:
             concat = request.POST
-            postBody = str(request.body, encoding = "utf-8") 
+            postBody = str(request.body.decode('utf-8'), encoding = "utf-8") 
             uuid = request.META.get("HTTP_TOKEN")
             models.customer.objects.filter(uuid=uuid).update(address=postBody)
             return HttpResponse('success submit')   
@@ -97,7 +97,7 @@ def address(request):
     
 def order(request):
     if (request.method=='POST'):
-        info=json.loads(request.body,encoding='utf-8')
+        info=json.loads(request.body.decode('utf-8'),encoding='utf-8')
         uuid = request.META.get("HTTP_TOKEN",None)
         try:
             user=models.customer.objects.get(uuid=uuid)
