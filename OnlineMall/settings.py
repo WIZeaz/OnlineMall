@@ -25,7 +25,7 @@ SECRET_KEY = 'g7isrcne7$x+o)*1$zv!8lw1(l8%1e+cx#oo&m=bl4i+b(ksp-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['www.wizeaz.top','wizeaz.top']
 
 
 # Application definition
@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'main',
     'user',
+    'werkzeug_debugger_runserver',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [

@@ -114,6 +114,8 @@ def order(request):
         for i in info['products']:
             sku=models.SKU.objects.get(SKU_id=i['product_id'])
             models.order_item.objects.create(toOrder=newOrder,toSKU=sku,amount=i['count'])
+            sku.amount-=i['count']
+            sku.save()
             totprice+=sku.price
         newOrder.price=totprice
         newOrder.save()
