@@ -58,7 +58,6 @@ def getSPU(request,uuid):
         l['properties']=spu.description
         l['summary']=spu.description
         l['store']=spu.belong.name
-
         URL=''
         try:
             for j in spu.sku_set.all():

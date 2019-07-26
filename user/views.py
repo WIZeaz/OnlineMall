@@ -36,13 +36,12 @@ def verify(request):
 def orderList(request):
     try: 
         token=request.META.get("HTTP_TOKEN",None)
-
         page=int(request.GET.get('page',1))
         page-=1
         if (token==None):
             return HttpResponse("{'error':'Can not find token'}")
         user=models.customer.objects.get(uuid=token)
-
+        
         print(page*Config.orderPerPage,(page+1)*Config.orderPerPage)
         l=dict(data=[])
         for i in user.order_set.all()[page*Config.orderPerPage:(page+1)*Config.orderPerPage]:
@@ -103,6 +102,12 @@ def order(request):
             user=models.customer.objects.get(uuid=uuid)
         except:
             return HttpResponse('{"error":"user does not exist"}')
+        # check item amount
+        for i in info['products']:
+            sku=models.SKU.objects.get(SKU_id=i['product_id'])
+            if (sku.amount<i['count']):
+                return HttpResponse(json.dumps({'pass':False,'error':"product amount not enough"},ensure_ascii=False))
+
         newOrder=models.order()
         newOrder.create_time=util.formatTime(time.localtime(time.time()))
         newOrder.status=2
